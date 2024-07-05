@@ -138,8 +138,6 @@
             background-color: #45a049;
         }
 
-        /* Add these styles to your existing styles or customize as needed */
-
         .feedback-form {
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -148,6 +146,7 @@
             box-sizing: border-box;
             background-color: #f9f9f9;
         }
+
 
         .form-title {
             margin-bottom: 15px;
@@ -265,48 +264,43 @@
             alert('Feedback submitted successfully!');
         }
 
-
         function createFeedbackForm(style) {
             var feedbackForm = `
-        <div class="feedback-form">
-          <h2 class="form-title">Feedback Form for SKU ${style}</h2>
-         <form class="d-flex form-wrapper">
-            <div class="form-wrap">  
-                <div class="form-group d-flex">
-                    <input type="checkbox" id="galleryImageMissing-${style}" name="feedback-${style}" value="gallery_image_missing">
-                    <label class="mb-0" for="galleryImageMissing-${style}">Gallery Image Missing</label>
+                <div class="feedback-form">
+                    <h2 class="form-title">Feedback Form for SKU ${style}</h2>
+                    <form class="d-flex form-wrapper">
+                        <div class="form-wrap">  
+                            <div class="form-group d-flex">
+                                <input type="checkbox" id="galleryImageMissing-${style}" name="feedback-${style}" value="gallery_image_missing">
+                                <label class="mb-0" for="galleryImageMissing-${style}">Gallery Image Missing</label>
+                            </div>
+                            <div class="form-group d-flex">
+                                <input type="checkbox" id="lineImageMissing-${style}" name="feedback-${style}" value="line_image_missing">
+                                <label class="mb-0" for="lineImageMissing-${style}">Line Image Missing</label>
+                            </div>
+                            <div class="form-group d-flex">
+                                <input type="checkbox" id="lineDrawingIncorrect-${style}" name="feedback-${style}" value="line_drawing_incorrect">
+                                <label class="mb-0" for="lineDrawingIncorrect-${style}">Line Drawing Incorrect</label>
+                            </div>
+                            <div class="form-group d-flex">
+                                <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="gallery_image_incorrect">
+                                <label class="mb-0" for="galleryImageIncorrect-${style}">Gallery Image Incorrect</label>
+                            </div>
+                            <div class="form-group d-flex">
+                                <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="line_canvas_incorrect" disabled>
+                                <label class="mb-0" for="lineCanvasIncorrect-${style}">Line Canvas Incorrect (coming soon)</label>
+                            </div>
+                        </div>
+                        <div class="input-note">
+                            <div class="form-group">
+                                <label for="userNote-${style}">Additional Note:</label>
+                                <textarea id="userNote-${style}" name="userNote-${style}" rows="4" cols="50"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="submit-btn" onclick="submitFeedback('${style}')">Submit Feedback</button>
+                    </form>
                 </div>
-
-                <div class="form-group d-flex">
-                    <input type="checkbox" id="lineImageMissing-${style}" name="feedback-${style}" value="line_image_missing">
-                    <label class="mb-0" for="lineImageMissing-${style}">Line Image Missing</label>
-                </div>
-
-                <div class="form-group d-flex">
-                    <input type="checkbox" id="lineDrawingIncorrect-${style}" name="feedback-${style}" value="line_drawing_incorrect">
-                    <label class="mb-0" for="lineDrawingIncorrect-${style}">Line Drawing Incorrect</label>
-                </div>
-                <div class="form-group d-flex">
-                    <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="gallery_image_incorrect">
-                    <label class="mb-0" for="galleryImageIncorrect-${style}">Gallery Image Incorrect</label>
-                </div>
-                <div class="form-group d-flex">
-                    <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="line_canvas_incorrect" disabled>
-                    <label class="mb-0" for="lineCanvasIncorrect-${style}">Line Canvas Incorrect (coming soon)</label>
-                </div>
-            </div>
-           <div class="input-note">
-                <div class="form-group">
-                    <label for="userNote-${style}">Additional Note:</label>
-                    <textarea id="userNote-${style}" name="userNote-${style}" rows="4" cols="50"></textarea>
-                </div>
-           </div>
-        <button type="button" class="submit-btn" onclick="submitFeedback('${style}')">Submit Feedback</button>
-    </form>
-</div>
-
             `;
-
             return feedbackForm;
         }
 
@@ -320,7 +314,6 @@
                     var domesticHTML = '<div style="display: flex; justify-content: space-between; align-items: center;">';
                     domesticHTML += '<h2 style="margin: 0;">Domestic Images ( <a href="https://ottocap.salesonepro.com/settings/catalog-settings/products/' + product.domestic_syle_id + '" target="_blank">' + product.domestic_syle_id + '</a> )</h2>';
                     domesticHTML += '<span style="font-size: 1.0rem; text-align: right; margin-left: 10px;">Stock Status: <strong>' + product.domestic_stock_status + '</strong> | Product Status: <strong>' + product.domestic_product_status + '</strong></span></div>';
-
 
                     for (const color in product.domestic) {
                         domesticHTML += `<div class="image-block"><h3>Color: ${color}</h3>`;
@@ -340,25 +333,16 @@
                                 } else if (imgType == 'conf_images') {
                                     item.data[imgType]?.images.forEach(function (image) {
                                         domesticHTML += `
-        <span class="image-wrap">
-            <img src="${image.image}" alt="Domestic Image" loading="lazy">
-            <span class="image-list">Location: ${image.location}</span>
-        </span>
-    `;
-
-                                    });
-                                    item.data[imgType]?.images.forEach(function (image) {
-                                        domesticHTML += `<span class="image-wrap"><img src="${image.image}" alt="Domestic Image" loading="lazy"><span class="image-list">Location: ${image.location}</span></span>`;
-                                        domesticHTML += `<div class="canvas-container" id="confCanvas-${item.sku}" style="position: relative;"></div>`;
-                                        domesticHTML += `<span class="image-list">Location: ${image.location}</span></div>`;
-
-
+                                            <span class="image-wrap">
+                                                <img src="${image.image}" alt="Domestic Image" loading="lazy">
+                                                <span class="image-list">Location: ${image.location}</span>
+                                            </span>
+                                        `;
                                     });
                                 }
                             }
                             domesticHTML += createFeedbackForm(item.sku);
                             domesticHTML += `</div>`;
-
                         });
 
                         domesticHTML += `</div>`;
@@ -390,10 +374,7 @@
                                     });
                                 } else if (imgType == 'conf_images') {
                                     item.data[imgType]?.images.forEach(function (image) {
-                                        overseasHTML += ` <span class="image-wrap">
-                                                                <img src="${image.image}" alt="Domestic Image" loading="lazy">
-                                                                        <span class="image-list">Location: ${image.location}</span>
-                                                              </span>`;
+                                        overseasHTML += `<span class="image-wrap"><img src="${image.image}" alt="Overseas Image" loading="lazy"><span class="image-list">Location: ${image.location}</span></span>`;
                                     });
                                 }
                             }
