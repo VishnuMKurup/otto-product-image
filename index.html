@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Product Listing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+        }
+
+        .list-wrap {
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            margin-right: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #search-input {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        #product-list {
+            list-style: none;
+            padding: 0;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        li {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        li:hover {
+            background-color: #e0e0e0;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .serial-number {
+            margin-right: 10px;
+            color: #777;
+        }
+
+        #extract-feedback {
+            cursor: pointer;
+            color: #3366cc;
+            text-decoration: underline;
+            position: fixed;
+            align-self: flex-end;
+            top: 0;
+            right: 21px;
+            background: #f5f5f5;
+            text-align: right;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        #extracted-feedback {
+            flex: 1;
+            padding-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+    <div class="list-wrap">
+        <h1>Product Listing</h1>
+
+        <!-- Search input for style -->
+        <input type="text" id="search-input" placeholder="Search by Style" oninput="searchByStyle()">
+
+        <ul id="product-list">
+            <!-- List of products will be dynamically generated here -->
+        </ul>
+    </div>
+
+    <div id="extracted-feedback">
+        <div id="extract-feedback" onclick="extractFeedback()">Extract Feedback</div>
+        <!-- Feedback details will be displayed here -->
+        <table id="feedback-table">
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Gallery Image Missing</th>
+                    <th>Line Image Missing</th>
+                    <th>Line Image Incorrect</th>
+                    <th>Gallery Image Incorrect</th>
+                    <th>Line Canvas Incorrect</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody id="feedback-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to create list items for products
+        function createProductListItem(product, index) {
+            var listItem = $("<li>").html(`<span class="serial-number">${index + 1}.</span><a href="detail.html?id=${product.style_id}">${product.style}</a>`);
+
+            // Check if feedback for this style is in session, and add a class for highlighting
+            var extractedFeedback = JSON.parse(sessionStorage.getItem('productFeedback')) || [];
+            var hasFeedback = extractedFeedback.some(feedback => feedback.style === product.style);
+
+            if (hasFeedback) {
+                listItem.addClass('feedback-highlight');
+            }
+
+            return listItem;
+        }
+
+        // Function to display feedback details in the table
+        function displayFeedbackDetails(feedback) {
+            var feedbackTable = $("#feedback-table");
+            var feedbackBody = $("#feedback-body");
+
+            feedbackBody.empty();
+
+            feedback.forEach(function (item) {
+                var row = $("<tr>");
+                row.append($("<td>").text(item.style));
+                row.append($("<td>").text(item.feedback.includes("gallery_image_missing") ? "Yes" : "No"));
+                row.append($("<td>").text(item.feedback.includes("line_image_missing") ? "Yes" : "No"));
+                row.append($("<td>").text(item.feedback.includes("line_drawing_incorrect") ? "Yes" : "No"));
+                row.append($("<td>").text(item.feedback.includes("gallery_image_incorrect") ? "Yes" : "No"));
+                row.append($("<td>").text(item.feedback.includes("line_canvas_incorrect") ? "Yes" : "No"));
+                row.append($("<td>").text(item.note || ""));
+                feedbackBody.append(row);
+            });
+
+            // Show the extracted feedback section
+            $("#extracted-feedback").show();
+        }
+
+        $(document).ready(function () {
+            // Fetch product data from JSON file (replace with your actual file path)
+            $.ajax({
+                url: './product_images.json',
+                dataType: 'json',
+                success: function (data) {
+                    // Display product list on page load
+                    var productList = $("#product-list");
+                    $.each(data, function (index, product) {
+                        var listItem = createProductListItem(product, index);
+                        productList.append(listItem);
+
+                        // Add click event listener to each list item
+                        listItem.on('click', function (event) {
+                            // Open product detail page in a new tab
+                            window.open(`detail.html?style=${product.style}`, '_blank');
+
+                            // Prevent the default action (e.g., navigating to the link)
+                            event.preventDefault();
+                        });
+                    });
+                },
+                error: function (error) {
+                    console.error('Error fetching product data:', error);
+                }
+            });
+        });
+
+        // Function to filter products based on style
+        function searchByStyle() {
+            var input, filter, ul, li, a, i, txtValue;
+            input = document.getElementById('search-input');
+            filter = input.value.toUpperCase();
+            ul = document.getElementById('product-list');
+            li = ul.getElementsByTagName('li');
+
+            for (i = 0; i < li.length; i++) {
+                a = li[i].getElementsByTagName('a')[0];
+                txtValue = a.textContent || a.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    li[i].style.display = ''; // Show the list item
+                } else {
+                    li[i].style.display = 'none'; // Hide the list item
+                }
+            }
+        }
+
+
+        function extractFeedback() {
+            var extractedFeedback = JSON.parse(localStorage.getItem('productFeedback')) || [];
+
+            if (extractedFeedback.length > 0) {
+                displayFeedbackDetails(extractedFeedback);
+                var extractedValues = extractedFeedback.map(function (feedback) {
+                    return {
+                        style: feedback.style,
+                        feedback: feedback.feedback,
+                        note: feedback.note
+                    };
+                });
+
+                // Copy the extracted values to the clipboard
+                var clipboardText = JSON.stringify(extractedValues, null, 2);
+                navigator.clipboard.writeText(clipboardText).then(function () {
+                    alert('Feedback values copied to clipboard!');
+                }).catch(function (err) {
+                    console.error('Error copying to clipboard:', err);
+                });
+            } else {
+                alert('No feedback to extract!');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Product Detail</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.6.3/fabric.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #product-detail {
+            margin-top: 20px;
+        }
+
+        p,
+        h3,
+        h4,
+        h5 {
+            margin-bottom: 5px;
+        }
+
+        img {
+            max-width: 14%;
+            height: auto;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-block {
+            margin-bottom: 20px;
+        }
+
+        .detail-wrap {
+            margin: 0 auto;
+        }
+
+        .domestic-block,
+        .overseas-block {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .domestic-block h2,
+        .overseas-block h2 {
+            margin-bottom: 10px;
+        }
+
+        .sku-block {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        .sku-block h4 {
+            margin-top: 7px;
+        }
+
+        .sku-block img {
+            max-width: 14%;
+            height: auto;
+            margin: 10px 10px 21px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-wrap {
+            position: relative;
+        }
+
+        .image-list {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -20px;
+            text-align: center;
+            font-size: 13px;
+            height: 37px;
+        }
+
+        #feedback-form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .feedback-form {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+
+        .feedback-form h2 {
+            margin-bottom: 10px;
+        }
+
+        .feedback-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .feedback-form textarea {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .feedback-form button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .feedback-form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Add these styles to your existing styles or customize as needed */
+
+        .feedback-form {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+        }
+
+        .form-title {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            flex-direction: row;
+            align-items: start;
+            margin-right: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+
+        .submit-btn {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 190px;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .feedback-form label.mb-0 {
+            margin-bottom: 0;
+        }
+
+        .status-block {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f8f8f8;
+        }
+
+        .status-block p {
+            margin-bottom: 5px;
+        }
+
+        .form-wrap {
+            display: flex;
+        }
+
+        .input-note {
+            display: flex;
+            width: 60%;
+        }
+
+        .form-wrapper {
+            flex-direction: column;
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="detail-wrap">
+        <h1>Product Detail</h1>
+        <div id="product-detail"></div>
+    </div>
+
+    <script>
+        var urlParams = new URLSearchParams(window.location.search);
+
+        function submitFeedback(sku) {
+            var selectedFeedback = $("input[name='feedback-" + sku + "']:checked").map(function () {
+                return $(this).val();
+            }).get();
+
+            var userNote = $("#userNote-" + sku).val();
+
+            var productId = urlParams.get('style');
+            var feedbackData = {
+                style: sku,
+                feedback: selectedFeedback,
+                note: userNote
+            };
+
+            var existingFeedback = JSON.parse(localStorage.getItem('productFeedback')) || [];
+
+            existingFeedback = existingFeedback.filter(item => item.style !== sku);
+
+            existingFeedback.push(feedbackData);
+            localStorage.setItem('productFeedback', JSON.stringify(existingFeedback));
+
+            alert('Feedback submitted successfully!');
+        }
+
+
+        function createFeedbackForm(style) {
+            var feedbackForm = `
+        <div class="feedback-form">
+          <h2 class="form-title">Feedback Form for SKU ${style}</h2>
+         <form class="d-flex form-wrapper">
+            <div class="form-wrap">  
+                <div class="form-group d-flex">
+                    <input type="checkbox" id="galleryImageMissing-${style}" name="feedback-${style}" value="gallery_image_missing">
+                    <label class="mb-0" for="galleryImageMissing-${style}">Gallery Image Missing</label>
+                </div>
+
+                <div class="form-group d-flex">
+                    <input type="checkbox" id="lineImageMissing-${style}" name="feedback-${style}" value="line_image_missing">
+                    <label class="mb-0" for="lineImageMissing-${style}">Line Image Missing</label>
+                </div>
+
+                <div class="form-group d-flex">
+                    <input type="checkbox" id="lineDrawingIncorrect-${style}" name="feedback-${style}" value="line_drawing_incorrect">
+                    <label class="mb-0" for="lineDrawingIncorrect-${style}">Line Drawing Incorrect</label>
+                </div>
+                <div class="form-group d-flex">
+                    <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="gallery_image_incorrect">
+                    <label class="mb-0" for="galleryImageIncorrect-${style}">Gallery Image Incorrect</label>
+                </div>
+                <div class="form-group d-flex">
+                    <input type="checkbox" id="galleryImageIncorrect-${style}" name="feedback-${style}" value="line_canvas_incorrect" disabled>
+                    <label class="mb-0" for="lineCanvasIncorrect-${style}">Line Canvas Incorrect (coming soon)</label>
+                </div>
+            </div>
+           <div class="input-note">
+                <div class="form-group">
+                    <label for="userNote-${style}">Additional Note:</label>
+                    <textarea id="userNote-${style}" name="userNote-${style}" rows="4" cols="50"></textarea>
+                </div>
+           </div>
+        <button type="button" class="submit-btn" onclick="submitFeedback('${style}')">Submit Feedback</button>
+    </form>
+</div>
+
+            `;
+
+            return feedbackForm;
+        }
+
+        $(document).ready(function () {
+            function displayProductDetail(product) {
+                var productDetailDiv = $("#product-detail");
+                productDetailDiv.html(`<h3>Style: ${product.style}</h3>`);
+
+                if (product.domestic) {
+                    var domesticBlock = $('<div class="domestic-block"></div>');
+                    var domesticHTML = '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                    domesticHTML += '<h2 style="margin: 0;">Domestic Images ( <a href="https://ottocap.salesonepro.com/settings/catalog-settings/products/' + product.domestic_syle_id + '" target="_blank">' + product.domestic_syle_id + '</a> )</h2>';
+                    domesticHTML += '<span style="font-size: 1.0rem; text-align: right; margin-left: 10px;">Stock Status: <strong>' + product.domestic_stock_status + '</strong> | Product Status: <strong>' + product.domestic_product_status + '</strong></span></div>';
+
+
+                    for (const color in product.domestic) {
+                        domesticHTML += `<div class="image-block"><h3>Color: ${color}</h3>`;
+
+                        product.domestic[color].forEach(function (item) {
+                            domesticHTML += `<div class="sku-block"><h4>SKU: ${item.sku} ( <a href="https://ottocap.salesonepro.com/settings/catalog-settings/products/${item.child_id}" target="_blank">${item.child_id}</a> )</h4>`;
+                            domesticHTML += `<span style="float: right; text-align: right; font-size: 0.8em; margin-left: 10px;">Product Status: <strong>${item.product_status}</strong> | Stock Status: <strong>${item.stock_status}</strong> | Discontinued: <strong>${item.disc}</strong> | Customisable: <strong>${item.cstm}</strong></span>`;
+
+                            for (const imgType in item.data) {
+                                domesticHTML += `<h5>Type: ${imgType}</h5>`;
+
+                                if (imgType !== 'conf_images') {
+                                    item.data[imgType].forEach(function (image) {
+                                        console.log(image.image, imgType)
+                                        domesticHTML += `<span class="image-wrap"><img src="${image.image}" alt="Domestic Image" loading="lazy"><span class="image-list">Type: ${image.type} (${image.sort_order})</span></span>`;
+                                    });
+                                } else if (imgType == 'conf_images') {
+                                    item.data[imgType]?.images.forEach(function (image) {
+                                        domesticHTML += `
+        <span class="image-wrap">
+            <img src="${image.image}" alt="Domestic Image" loading="lazy">
+            <span class="image-list">Location: ${image.location}</span>
+        </span>
+    `;
+
+                                    });
+                                    item.data[imgType]?.images.forEach(function (image) {
+                                        domesticHTML += `<span class="image-wrap"><img src="${image.image}" alt="Domestic Image" loading="lazy"><span class="image-list">Location: ${image.location}</span></span>`;
+                                        domesticHTML += `<div class="canvas-container" id="confCanvas-${item.sku}" style="position: relative;"></div>`;
+                                        domesticHTML += `<span class="image-list">Location: ${image.location}</span></div>`;
+
+
+                                    });
+                                }
+                            }
+                            domesticHTML += createFeedbackForm(item.sku);
+                            domesticHTML += `</div>`;
+
+                        });
+
+                        domesticHTML += `</div>`;
+                    }
+
+                    domesticBlock.html(domesticHTML);
+                    productDetailDiv.append(domesticBlock);
+                }
+
+                if (product.overseas) {
+                    var overseasBlock = $('<div class="overseas-block"></div>');
+                    var overseasHTML = '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                    overseasHTML += '<h2 style="margin: 0;">Overseas Images ( <a href="https://ottocap.salesonepro.com/settings/catalog-settings/products/' + product.oversea_style_id + '" target="_blank">' + product.oversea_style_id + '</a> )</h2>';
+                    overseasHTML += '<span style="font-size: 1.0rem; text-align: right; margin-left: 10px;">Stock Status: <strong>' + product.oversea_stock_status + '</strong> | Product Status: <strong>' + product.oversea_product_status + '</strong></span></div>';
+
+                    for (const color in product.overseas) {
+                        overseasHTML += `<div class="image-block"><h3>Color: ${color}</h3>`;
+
+                        product.overseas[color].forEach(function (item) {
+                            overseasHTML += `<div class="sku-block"><h4>SKU: ${item.sku} ( <a href="https://ottocap.salesonepro.com/settings/catalog-settings/products/${item.child_id}" target="_blank">${item.child_id}</a> ) </h4>`;
+                            overseasHTML += `<span style="float: right; text-align: right; font-size: 0.8em; margin-left: 10px;">Product Status: <strong>${item.product_status}</strong> | Stock Status: <strong>${item.stock_status}</strong> | Discontinued: <strong>${item.disc}</strong> | Customisable: <strong>${item.cstm}</strong></span>`;
+
+                            for (const imgType in item.data) {
+                                overseasHTML += `<h5>Type: ${imgType}</h5>`;
+
+                                if (imgType !== 'conf_images') {
+                                    item.data[imgType].forEach(function (image) {
+                                        overseasHTML += `<img src="${image.image}" alt="Overseas Image" loading="lazy">`;
+                                    });
+                                } else if (imgType == 'conf_images') {
+                                    item.data[imgType]?.images.forEach(function (image) {
+                                        overseasHTML += ` <span class="image-wrap">
+                                                                <img src="${image.image}" alt="Domestic Image" loading="lazy">
+                                                                        <span class="image-list">Location: ${image.location}</span>
+                                                              </span>`;
+                                    });
+                                }
+                            }
+
+                            overseasHTML += createFeedbackForm(item.sku);
+                            overseasHTML += `</div>`;
+                        });
+
+                        overseasHTML += `</div>`;
+                    }
+
+                    overseasBlock.html(overseasHTML);
+                    productDetailDiv.append(overseasBlock);
+                }
+            }
+
+            var productId = urlParams.get('style');
+            $.ajax({
+                url: './product_images.json',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data)
+                    var product = data.find(item => item.style === productId);
+                    if (product) {
+                        displayProductDetail(product);
+                    } else {
+                        console.error('Product not found');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error fetching product data:', error);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
